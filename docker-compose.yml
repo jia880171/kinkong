@@ -1,0 +1,10 @@
+# docker-compose version
+version: '3'
+
+services:
+  kintone:
+    container_name: kintone
+    build: . # specify the directory of the Dockerfile
+    volumes:
+      - ./:/app
+    tty: true
