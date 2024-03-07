@@ -1,4 +1,6 @@
 node_modules/
 
+src/files/
+
 21.csv
 .DS_store

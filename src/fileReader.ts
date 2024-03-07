@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as readline from 'readline';
-import { requiredJPNames, requiredNameIndices, names, JPNames } from './consts/required_names';
+import {JPNames, requiredJPNameMap } from './consts/required_names';
 
 /**
  *
@@ -22,12 +22,14 @@ export enum MODES {
 
 const MODE: MODES = MODES.DEBUG;
 
-class CsvLineReader {
-  private filePath: string;
+export class FileReader {
+  private filePath: string = '';
 
-  constructor(filePath: string) {
+  execute(filePath: string) {
     this.filePath = filePath;
-  }
+    // const csvReader = new CsvLineReader('../files/IBBIAZ02BT');
+    this.processData();
+  };
 
   async readLines(): Promise<void> {
     const fileStream = fs.createReadStream(this.filePath);
@@ -88,21 +90,13 @@ class CsvLineReader {
    * @returns An array of items parsed from the line.
    */
   parseLineIntoItems(line: string): Array<string> {
+    // console.log('====== line: ', line);
+
     // Remove all double quotes in the line
     line = line.replace(/"/g, '');
-    console.log('====== line: ', line);
     // Split the line into an array of items
     const items = line.split(',');
     return items;
-  }
-
-  /**
-   * Gets the index of the required name based on the provided index.
-   * @param index The index used to retrieve the required name index.
-   * @returns The index of the required name.
-   */
-  getIndexOfRequiredName(index: number): number {
-    return requiredNameIndices[index];
   }
 
   /**
@@ -114,41 +108,41 @@ class CsvLineReader {
     // Initialize an empty object to store processed product data
     const product: Record<string, any> = {};
 
-    // Iterate through the required names to process each item
-    for (let [index, name] of requiredJPNames.entries()) {
+    // Iterate through the required items
+    for (const [name, index] of requiredJPNameMap) {
 
-      // Check if the item exists at the required index
-      if (items[this.getIndexOfRequiredName(index)]) {
+      // Check if the item exists
+      if (items[index]) {
         // console.log(`====== ${ name } : `, items[requiredNameIndices[index]]);
 
         // Apply specific formatting for certain fields
         switch (name) {
           case "発売年月日":
-            items[requiredNameIndices[index]] = this.formatDate(items[requiredNameIndices[index]]);
+            items[index] = this.formatDate(items[index]);
             break;
           case "終売年月日":
-            items[requiredNameIndices[index]] = this.formatDate(items[requiredNameIndices[index]]);
+            items[index] = this.formatDate(items[index]);
             break;
           case "リニューアル年月日":
-            items[requiredNameIndices[index]] = this.formatDate(items[requiredNameIndices[index]]);
+            items[index] = this.formatDate(items[index]);
             break;
           case "パックＪＡＮコード":
-            if (items[requiredNameIndices[index]] === '0000000000000') {
-              items[requiredNameIndices[index]] = '';
+            if (items[index] === '0000000000000') {
+              items[index] = '';
             }
             break;
           case "ケースＪＡＮコード":
-            if (items[requiredNameIndices[index]] === '0000000000000') {
-              items[requiredNameIndices[index]] = '';
+            if (items[index] === '0000000000000') {
+              items[index] = '';
             }
             break;
           case "ＩＴＦコード":
-            items[requiredNameIndices[index]] = items[requiredNameIndices[index]].trim();
+            items[index] = items[index].trim();
           default:
             break;
         }
         // Store the processed item in the product object
-        product[name] = { value: items[requiredNameIndices[index]] };
+        product[name] = { value: items[index] };
       }
     }
     return product;
@@ -253,6 +247,3 @@ class CsvLineReader {
   }
 }
 
-// Example usage
-const csvReader = new CsvLineReader('./IBBIAZ02BT');
-csvReader.processData();
